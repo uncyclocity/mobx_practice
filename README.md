@@ -1,70 +1,79 @@
-# Getting Started with Create React App
+# 💾 MobX 사용하기
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> References <br> <a href="https://jforj.tistory.com/154">[React] 함수형 컴포넌트에서 Mobx 사용하기</a> _.J4J_
 
-## Available Scripts
+## 🎛 구조
 
-In the project directory, you can run:
+<img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbkoXNi%2FbtraoBKbF9G%2FnGPXO05vDRx9whXvbyfq90%2Fimg.png">
 
-### `npm start`
+- **Actions** : Observable State의 데이터를 변화시키는 함수
+- **Observable State** : 관찰되고 있는 데이터가 저장되는 곳
+- **Compute Values** : 관찰되고 있는 데이터의 변화를 감지하여, 렌더링 등 사이드 이펙트 트리거를 전달함
+- **Side Effects** : 렌더링 등의 사이드 이펙트를 실행하고, 이후의 액션 함수가 실행되도록 이벤트를 전달함
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 💻 사용하기
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- `src/modules` 디렉토리를 생성하여 아래 파일들을 만든다.
 
-### `npm test`
+numberStore.js
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```javascript
+// observable 파일 : state와 액션 함수가 담겨있음
+import { observable } from "mobx";
 
-### `npm run build`
+const NumberStore = observable({
+    // state
+    num: 0,
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    // 액션 함수
+    increaseAction(num) {
+        this.num = this.num + num;
+    }
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    decreaseAction(num) {
+        this.num = this.num - num
+    }
+});
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+export default NumberStore;
+```
 
-### `npm run eject`
+indexStore.js
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```javascript
+// observable들을 묶어주는 파일
+import NumberStore from "./numberStore";
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+const indexStore = () => ({
+  NumberStore,
+  // StoreBlah
+  // BlahStore
+});
+export default indexStore;
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- App.js에서 사용하기
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```javascript
+import indexStore from "./modules/indexStore";
 
-## Learn More
+export default function App() {
+  const { NumberStore } = indexStore();
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+  const increase = () => {
+    NumberStore.increaseAction(1);
+  };
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+  const decrease = () => {
+    NumberStore.decreaseAction(1);
+  };
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+  return (
+    <>
+      <p>Num value : {NumberStore.num}</p>
+      <button onClick={increase}>+1</button>
+      <button onClick={decrease}>-1</button>
+    </>
+  );
+}
+```
